@@ -1,3 +1,34 @@
+/**
+ * Copyright (C) 2020-present Jung-Sang Ahn <jungsang.ahn@gmail.com>
+ * All rights reserved.
+ *
+ * https://github.com/greensky00
+ *
+ * Timeline Monitor
+ * Version: 0.1.0
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 #pragma once
 
 #include <atomic>
@@ -28,13 +59,13 @@ public:
     /**
      * Default constructor.
      *
-     * @param name Name of timeline event.
+     * @param n Name of timeline event.
      * @param t Type.
      * @param i ID.
      * @param d Depth.
      */
-    TimelineElem(const char* name, Type t, uint64_t i, uint32_t d)
-        : timelineName(name)
+    TimelineElem(const char* n, Type t, uint64_t i, uint32_t d)
+        : timelineName(n)
         , type(t)
         , id(i)
         , depth(d)
@@ -130,7 +161,7 @@ public:
     /**
      * Default constructor.
      */
-    Timeline() : lastDepth(0) {}
+    Timeline() : eventIdCounter(0), lastDepth(0) {}
 
     /**
      * Append a `BEGIN` event.
@@ -197,10 +228,25 @@ public:
      */
     const std::list<TimelineElem>& getElems() const { return elems; }
 
+    /**
+     * Get the depth of stack.
+     */
+    uint32_t getDepth() const { return lastDepth; }
+
+    /**
+     * Issue an ID.
+     */
+    uint64_t issueId() { return eventIdCounter++; }
+
 private:
     void clear() {
         elems.clear();
     }
+
+    /**
+     * Counter for assigning ID.
+     */
+    uint64_t eventIdCounter;
 
     /**
      * List of timeline elements.
@@ -215,7 +261,7 @@ private:
 
 /**
  * This class is an example of timeline dump. Users can write their
- * own dump class.
+ * own dump function or class.
  */
 class TimelineDump {
 public:
@@ -265,11 +311,6 @@ public:
 };
 
 /**
- * Counter for assigning ID of events for each thread.
- */
-static thread_local uint64_t event_id_counter(1);
-
-/**
  * Timeline of each thread.
  */
 static thread_local Timeline thread_events;
@@ -287,7 +328,7 @@ public:
     TimelineMonitor(const char* name)
         : timelineRef(thread_events)
         , myName(name)
-        , myId(event_id_counter++)
+        , myId(timelineRef.issueId())
         , done(false)
     {
         timelineRef.pushBegin(myName, myId);
@@ -302,7 +343,7 @@ public:
     TimelineMonitor(Timeline& timeline, const char* name)
         : timelineRef(timeline)
         , myName(name)
-        , myId(event_id_counter++)
+        , myId(timelineRef.issueId())
         , done(false)
     {
         timelineRef.pushBegin(myName, myId);

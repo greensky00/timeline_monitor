@@ -77,16 +77,18 @@ void func_e() {
     // Stop monitoring of `func_e`, and export the current contents.
     timeline_monitor::Timeline exported = T_MONITOR_EXPORT();
 
-    // Pass the exported timeline to other thread.
+    // Transfer the exported timeline to other thread.
     std::thread t(func_d, &exported);
     if (t.joinable()) t.join();
 }
 
 int main(int argc, char** argv) {
-    // Timeline for hierarchical function calls in the same thread.
+    // Example 1:
+    //   Timeline for hierarchical function calls in the same thread.
     func_c();
 
-    // Timeline across different threads.
+    // Example 2:
+    //   Timeline transfer across different threads.
     func_e();
 
     return 0;
