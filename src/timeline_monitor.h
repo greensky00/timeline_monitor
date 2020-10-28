@@ -33,12 +33,10 @@
 
 #include <atomic>
 #include <chrono>
-#include <iomanip>
 #include <list>
-#include <memory>
 #include <sstream>
+#include <string>
 #include <unordered_map>
-#include <vector>
 
 namespace timeline_monitor {
 
