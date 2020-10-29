@@ -5,7 +5,7 @@
  * https://github.com/greensky00
  *
  * Timeline Monitor
- * Version: 0.1.0
+ * Version: 0.1.1
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -183,7 +183,9 @@ public:
      *           `BEGIN` event.
      */
     void pushEnd(const char* name, uint64_t id) {
-        elems.push_back( TimelineElem(name, TimelineElem::END, id, --lastDepth) );
+        if (lastDepth) {
+            elems.push_back( TimelineElem(name, TimelineElem::END, id, --lastDepth) );
+        }
         clearIfNecessary(id);
     }
 
@@ -199,7 +201,9 @@ public:
      * @return Exported timeline instance.
      */
     Timeline pushEndAndExport(const char* name, uint64_t id) {
-        elems.push_back( TimelineElem(name, TimelineElem::END, id, --lastDepth) );
+        if (lastDepth) {
+            elems.push_back( TimelineElem(name, TimelineElem::END, id, --lastDepth) );
+        }
         Timeline ret = *this;
         clearIfNecessary(id);
         return ret;

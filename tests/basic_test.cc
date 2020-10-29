@@ -129,6 +129,40 @@ int multi_thread_test() {
     return 0;
 }
 
+int export_in_the_middle_test() {
+    TestSuite::Msg mm;
+
+    timeline_monitor::Timeline ret;
+    auto func_1 = [&](bool do_middle_export) {
+        T_MONITOR_FUNC();
+        {
+            T_MONITOR_BLOCK("func_1_inner");
+        }
+        if (do_middle_export) {
+            ret = T_MONITOR_EXPORT();
+        }
+    };
+    auto func_2 = [&](bool do_middle_export) {
+        T_MONITOR_FUNC();
+        func_1(do_middle_export);
+        if (!do_middle_export) {
+            ret = T_MONITOR_EXPORT();
+        }
+    };
+
+    func_2(true);
+    mm << timeline_monitor::TimelineDump::toString(ret) << std::endl;
+    CHK_EQ( 5, ret.getElems().size() );
+    CHK_EQ( 1, ret.getDepth() );
+
+    func_2(false);
+    mm << timeline_monitor::TimelineDump::toString(ret) << std::endl;
+    CHK_EQ( 6, ret.getElems().size() );
+    CHK_EQ( 0, ret.getDepth() );
+
+    return 0;
+}
+
 int main(int argc, char** argv) {
     TestSuite ts(argc, argv);
     ts.options.printTestMessage = true;
@@ -136,6 +170,7 @@ int main(int argc, char** argv) {
     ts.doTest("hierarchical test", hierarchical_test);
     ts.doTest("thread transfer test", thread_transfer_test);
     ts.doTest("multi thread test", multi_thread_test);
+    ts.doTest("export in the middle test", export_in_the_middle_test);
 
     return 0;
 }
